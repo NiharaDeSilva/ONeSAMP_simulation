@@ -1,0 +1,18 @@
+Simulation Log
+------------------------
+Ne = 00128
+Execution time: 14 seconds
+Maximum memory usage: 2596 KB
+------------------------
+Ne = 00256
+Execution time: 18 seconds
+Maximum memory usage: 2760 KB
+------------------------
+Ne = 00512
+Execution time: 32 seconds
+Maximum memory usage: 3112 KB
+------------------------
+Ne = 01024
+Execution time: 57 seconds
+Maximum memory usage: 3480 KB
+------------------------

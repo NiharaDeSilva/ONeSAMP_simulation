@@ -82,6 +82,7 @@ double allelePr(int val1, int val2, double theta){
 }
 
 int main(int argc, char **argv) {
+  printf("hope  not");
   if(argc != 6){
     printf("usage: ./csim SNP <theta> <loci> <diploid individuals> <min allele threshold frequency>\n");
     printf("usage: ./csim MICROSAT <theta> <loci> <diploid individuals> <min allele threshold frequency>\n");

@@ -11,7 +11,7 @@
 ############
 
 # Number of trials to run simcoal2 (and simuPOP)
-export NUMTRIALS=50
+export NUMTRIALS=10
 
 # List of different Ne values to be used in simulation. Must have 5 digits apiece.
 export NeVals="00256"
@@ -70,7 +70,7 @@ export rangeNe=100,500
 export theta=0.000048,0.0048
 
 # Number of populations that ONeSAMP generates
-export numOneSampTrials=20000
+export numOneSampTrials=1
 
 # Duration of bottlenecks
 export duration=2,8
@@ -353,18 +353,18 @@ if [ $1 ]; then
     
   fi
 fi
-# Generates first line of analysis file
-if [ $1 ]; then
-  if [ $1 == "analyzeUnknownPopulation" ]; then
-    for j in `ls *$suffix | cat`; do
-      echo "Generating first line in analysis file for "$j
-      # UPDATE 3
-      export flags=`nice -n $processPriority ionice -n $filePriority $ONESAMP2 -x < $j | tr -d '\n'`
-      nice -n $processPriority ionice -n $filePriority $ONESAMP2 < $j $flags -rC -$microsatsOrSNPs -d$duration -b$rangeNe -v$theta -u$mutationRate -t1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -o1 -a -w > ${j}$DISTSUFFIX
-    done
+# # Generates first line of analysis file
+# if [ $1 ]; then
+#   if [ $1 == "analyzeUnknownPopulation" ]; then
+#     for j in `ls *$suffix | cat`; do
+#       echo "Generating first line in analysis file for "$j
+#       # UPDATE 3
+#       export flags=`nice -n $processPriority ionice -n $filePriority $ONESAMP2 -x < $j | tr -d '\n'`
+#       nice -n $processPriority ionice -n $filePriority $ONESAMP2 < $j $flags -rC -$microsatsOrSNPs -d$duration -b$rangeNe -v$theta -u$mutationRate -t1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -o1 -a -w > ${j}$DISTSUFFIX
+#     done
     
-  fi
-fi
+#   fi
+# fi
 
 ############
 ############
