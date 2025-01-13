@@ -194,33 +194,26 @@ if [ $1 ]; then
             rm -fr $OUTPUT
 
             # Start timing in milliseconds
-            start_time=$(date +%s%3N)
+	    start_time=$(date +%s%3N)
             
             nice -n $processpriority ionice -n $filePriority $ONESAMP2 -t1 -rC -b$numPOP -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > $OUTPUT$suffix
-	    total_memory_used=$(awk '/MemTotal/{print $2}' /proc/meminfo)
-	    echo "Total memory used: $total_memory_used kB"
+	    /usr/bin/time -f "%e %M" -o time_mem.log nice -n $processpriority ionice -n $filePriority $ONESAMP2 -t1 -rC -b$numPOP -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > $OUTPUT$suffix
+
+	    execution_time=$(cut -d' ' -f1 time_mem.log) # Execution time in seconds
+	    memory_used=$(cut -d' ' -f2 time_mem.log) 
+
+	    # Convert memory to MB
+	    memory_used_mb=$(echo "scale=2; $memory_used / 1024" | bc)
 	    
 	    #pid=$!
-
-            #total_memory=0
-
-            # Continuously check memory usage while the process is running
-            #while kill -0 $pid 2>/dev/null; do
-              #current_memory=$(ps -o rss= -p $pid)
-              #total_memory=$((total_memory + current_memory))
-             # sleep 1
-            #done
 	    
             # End timing in milliseconds
             end_time=$(date +%s%3N)
             execution_time=$((end_time - start_time))
             #execution_time_sec=$(echo "scale=3; $execution_time_ms / 1000" | bc)
-            
-            # Convert total memory from KB to MB for better readability
-            #total_memory_mb=$((total_memory / 1024))
 
             # Write to log file
-            echo "$numPOP,$iteration,$execution_time,$total_memory_used" >> $log_file
+            echo "$numPOP,$iteration,$execution_time,$memory_used_mb" >> $log_file
 
 
             echo "Trial complete"
