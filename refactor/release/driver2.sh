@@ -161,7 +161,7 @@ export log_file="execution_stats_original"
 ############
 if [ $1 ]; then
   if [ $1 == "generateSimulatedPopulationsOfKnownNe" ]; then
-    log_file="simulation_log.txt"
+    log_file="log_ne.txt"
     echo "Ne,Iteration,Time,Memory" > $log_file
     
     loci_values=(160) # Example loci values
@@ -170,7 +170,7 @@ if [ $1 ]; then
     for numPOP in $(echo $NeVals); do
       for loci in "${loci_values[@]}"; do
         for outputSampleSize in "${size_values[@]}"; do
-          for iteration in {1..10}; do
+          for iteration in {1..2}; do
             #echo "Generating test cases for Ne = $numPOP, Loci = $loci, Size = $outputSampleSize"
             
             sleep 2
@@ -196,27 +196,32 @@ if [ $1 ]; then
             # Start timing in milliseconds
             start_time=$(date +%s%3N)
             
-            pid=$(./ONESAMP2 -t1 -rC -b$numPOP -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > $OUTPUT$suffix & echo $!)
+            nice -n $processpriority ionice -n $filePriority $ONESAMP2 -t1 -rC -b$numPOP -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > $OUTPUT$suffix
+	    total_memory_used=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+	    echo "Total memory used: $total_memory_used kB"
+	    
+	    #pid=$!
 
-            total_memory=0
+            #total_memory=0
 
             # Continuously check memory usage while the process is running
-            while kill -0 $pid 2>/dev/null; do
-              current_memory=$(ps -o rss= -p $pid)
-              total_memory=$((total_memory + current_memory))
-              sleep 0.1
-            done
-
+            #while kill -0 $pid 2>/dev/null; do
+              #current_memory=$(ps -o rss= -p $pid)
+              #total_memory=$((total_memory + current_memory))
+             # sleep 1
+            #done
+	    
             # End timing in milliseconds
             end_time=$(date +%s%3N)
             execution_time=$((end_time - start_time))
-            execution_time_sec=$(echo "scale=3; $execution_time_ms / 1000" | bc)
+            #execution_time_sec=$(echo "scale=3; $execution_time_ms / 1000" | bc)
             
             # Convert total memory from KB to MB for better readability
-            total_memory_mb=$((total_memory / 1024))
+            #total_memory_mb=$((total_memory / 1024))
 
             # Write to log file
-            echo "$numPOP,$iteration,$execution_time_sec,$total_memory_mb" >> $log_file
+            echo "$numPOP,$iteration,$execution_time,$total_memory_used" >> $log_file
+
 
             echo "Trial complete"
           done # End of size loop
