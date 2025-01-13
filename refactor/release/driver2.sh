@@ -10,7 +10,7 @@
 export NUMTRIALS=10
 
 # List of different Ne values to be used in simulation. Must have 5 digits apiece.
-export NeVals="00128 00256 00512 01024"
+export NeVals="00050 00100 00150 00200"
 # 00128 00256 00512 01024
 #export NeVals="00100"
 export NeDigits=5
@@ -159,56 +159,60 @@ export log_file="execution_stats_original"
 ## STEP 1 ##
 ############
 ############
-
 if [ $1 ]; then
   if [ $1 == "generateSimulatedPopulationsOfKnownNe" ]; then
     log_file="simulation_log.txt"
     echo "Simulation Log" > $log_file
     echo "------------------------" >> $log_file
     
-    for numPOP in $( echo $NeVals ); do
-      echo "Generating all test cases for Ne = " $numPOP
-      
-      sleep 2
-
-      echo "Running ONESAMP2 coalescent simulator..."
-      
-      export genepopdata=ONeSAMP1Temp${numPOP}number
-      export simcoalout=ONeSAMP2Temp${numPOP}number
-      export simupopin=ONeSAMP3Temp${numPOP}number${gen}
-      export executablename=ONeSAMP4Temp${numPOP}number
-      export pythonscript=ONeSAMP5Temp${numPOP}number.py
-      export OUTPUT=${pop}${numPOP}${number}${gen}
-  
-      export expectedNe=$numPOP
-  
-      rm -fr $simcoalout
-      rm -fr $simcoalout$PARAMETER
-      rm -fr $genepopdata
-      rm -fr $executablename
-      rm -fr $pythonscript
-      rm -fr $OUTPUT
-
-      # Start timing in milliseconds
-      start_time=$(date +%s%3N)
-
-      # Measure execution time and memory usage
-      /usr/bin/time -v nice -n $processPriority ionice -n $filePriority $ONESAMP2 -t1 -rC -b$numPOP -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > $OUTPUT$suffix 2> temp_memory_usage.txt
-
-      # End timing in milliseconds
-      end_time=$(date +%s%3N)
-      execution_time=$((end_time - start_time))
+    loci_values=(160) # Example loci values
+    size_values=(100) # Example size values
+    
+    for numPOP in $(echo $NeVals); do
+      for loci in "${loci_values[@]}"; do
+        for outputSampleSize in "${size_values[@]}"; do
+          for iteration in {1..10}; do
+            #echo "Generating test cases for Ne = $numPOP, Loci = $loci, Size = $outputSampleSize"
             
-      # Extract memory usage
-      max_memory=$(grep 'Maximum resident set size' temp_memory_usage.txt | awk '{print $6}')
+            sleep 2
 
-      # Write to log file
-      echo "Ne = $numPOP" >> $log_file
-      echo "Execution time: $execution_time seconds" >> $log_file
-      echo "Maximum memory usage: $max_memory KB" >> $log_file
-      echo "------------------------" >> $log_file
+            #echo "Running ONESAMP2 coalescent simulator..."
+            
+            export genepopdata="ONeSAMP1Temp${numPOP}number"
+            export simcoalout="ONeSAMP2Temp${numPOP}number"
+            export simupopin="ONeSAMP3Temp${numPOP}number${gen}"
+            export executablename="ONeSAMP4Temp${numPOP}number"
+            export pythonscript="ONeSAMP5Temp${numPOP}number.py"
+            export OUTPUT="${pop}${iteration}${numPOP}${number}${gen}"
+  
+            export expectedNe=$numPOP
+  
+            rm -fr $simcoalout
+            rm -fr $simcoalout$PARAMETER
+            rm -fr $genepopdata
+            rm -fr $executablename
+            rm -fr $pythonscript
+            rm -fr $OUTPUT
 
-      echo "Trial complete"
-    done # End of for loop
+            # Start timing in milliseconds
+            start_time=$(date +%s%3N)
+            
+            nice -n $processPriority ionice -n $filePriority $ONESAMP2 -t1 -rC -b$numPOP -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > $OUTPUT$suffix
+
+            # End timing in milliseconds
+            end_time=$(date +%s%3N)
+            execution_time=$((end_time - start_time))
+            
+            # Extract memory usage
+            max_memory=$(grep 'Maximum resident set size' temp_memory_usage.txt | awk '{print $6}')
+
+            # Write to log file
+            echo "$iteration, Ne = $numPOP, Loci = $loci, Size = $outputSampleSize, $execution_time ms, $max_memory KB" >> $log_file
+
+            echo "Trial complete"
+          done # End of size loop
+        done # End of loci loop
+      done # End of numPOP loop
+    done # End of iteration loop
   fi # End of inner if
 fi # End of outer if
